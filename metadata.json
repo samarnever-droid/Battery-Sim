@@ -1,0 +1,6 @@
+{
+  "name": "ElectroMCP - Battery Material Builder & Performance Analytics",
+  "description": "An MCP-powered battery design toolkit and realistic electrochemical simulator. Build lithium and post-lithium cells using real materials with PubChem molecular data, live charge-discharge analytics, thermal modeling, and Model Context Protocol agent tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
