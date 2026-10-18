@@ -16,13 +16,14 @@ import {
   Activity,
   Layers,
 } from 'lucide-react';
-import type { CellConfiguration, CellPerformanceMetrics, FormFactorType } from '../battery/types.ts';
+import type { CellConfiguration, CellPerformanceMetrics, FormFactorType, FoilMaterialType } from '../battery/types.ts';
 import {
   CATHODE_MATERIALS,
   ANODE_MATERIALS,
   ELECTROLYTE_MATERIALS,
   SEPARATOR_MATERIALS,
   FORM_FACTORS,
+  FOIL_MATERIALS,
 } from '../battery/materials.ts';
 import { ModernSlider } from './ModernSlider.tsx';
 
@@ -439,36 +440,79 @@ export const MaterialBuilder: React.FC<MaterialBuilderProps> = ({
               onChange={(val) => onChangeConfig({ separatorThicknessUm: val })}
             />
 
-            {/* Current Collector Foil Thicknesses */}
-            <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <label htmlFor="al-foil-thick" className="text-slate-600 block text-[11px] mb-1 font-medium">Al Foil (Cathode)</label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    id="al-foil-thick"
-                    type="number"
-                    min="10"
-                    max="25"
-                    value={config.aluminumFoilThicknessUm}
-                    onChange={(e) => onChangeConfig({ aluminumFoilThicknessUm: Number(e.target.value) })}
-                    className="w-full text-xs font-mono bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-900"
-                  />
-                  <span className="font-mono text-[10px] text-slate-400">µm</span>
+            {/* Current Collector Foils & Aluminum Customization */}
+            <div className="pt-3 border-t border-slate-100 space-y-3 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-slate-800">Current Collector Foils</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                  metrics.aluminumCorrosionRiskScore >= 80
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                }`}>
+                  Passivation: {metrics.aluminumCorrosionRiskScore}/100
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="cathode-foil-select" className="text-slate-600 block text-[11px] mb-1 font-medium">Cathode Foil</label>
+                  <select
+                    id="cathode-foil-select"
+                    value={config.cathodeFoilMaterial || 'aluminum'}
+                    onChange={(e) => onChangeConfig({ cathodeFoilMaterial: e.target.value as FoilMaterialType })}
+                    className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded p-1.5 text-slate-900"
+                  >
+                    <option value="aluminum">Aluminum Foil (2.70 g/cm³)</option>
+                    <option value="carbon-coated-aluminum">Carbon-Coated Al (Low IR)</option>
+                    <option value="nickel">Nickel Foil (8.90 g/cm³)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="anode-foil-select" className="text-slate-600 block text-[11px] mb-1 font-medium">Anode Foil</label>
+                  <select
+                    id="anode-foil-select"
+                    value={config.anodeFoilMaterial || (selectedCathode.category === 'sodium-ion' || selectedCathode.category === 'aluminum-ion' ? 'aluminum' : 'copper')}
+                    onChange={(e) => onChangeConfig({ anodeFoilMaterial: e.target.value as FoilMaterialType })}
+                    className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded p-1.5 text-slate-900"
+                  >
+                    <option value="copper">Copper Foil (8.96 g/cm³)</option>
+                    <option value="aluminum">Aluminum Foil (Na/Al Cell)</option>
+                    <option value="nickel">Nickel Foil (8.90 g/cm³)</option>
+                  </select>
                 </div>
               </div>
-              <div>
-                <label htmlFor="cu-foil-thick" className="text-slate-600 block text-[11px] mb-1 font-medium">Cu Foil (Anode)</label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    id="cu-foil-thick"
-                    type="number"
-                    min="6"
-                    max="18"
-                    value={config.copperFoilThicknessUm}
-                    onChange={(e) => onChangeConfig({ copperFoilThicknessUm: Number(e.target.value) })}
-                    className="w-full text-xs font-mono bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-900"
-                  />
-                  <span className="font-mono text-[10px] text-slate-400">µm</span>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label htmlFor="al-foil-thick" className="text-slate-600 block text-[11px] mb-1 font-medium">Cathode Foil Thickness</label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      id="al-foil-thick"
+                      type="number"
+                      min="8"
+                      max="30"
+                      value={config.aluminumFoilThicknessUm}
+                      onChange={(e) => onChangeConfig({ aluminumFoilThicknessUm: Number(e.target.value) })}
+                      className="w-full text-xs font-mono bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-900"
+                    />
+                    <span className="font-mono text-[10px] text-slate-400">µm</span>
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="cu-foil-thick" className="text-slate-600 block text-[11px] mb-1 font-medium">Anode Foil Thickness</label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      id="cu-foil-thick"
+                      type="number"
+                      min="6"
+                      max="25"
+                      value={config.copperFoilThicknessUm}
+                      onChange={(e) => onChangeConfig({ copperFoilThicknessUm: Number(e.target.value) })}
+                      className="w-full text-xs font-mono bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-900"
+                    />
+                    <span className="font-mono text-[10px] text-slate-400">µm</span>
+                  </div>
                 </div>
               </div>
             </div>

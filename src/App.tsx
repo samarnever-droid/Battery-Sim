@@ -14,6 +14,8 @@ import { PerformanceAnalytics } from './components/PerformanceAnalytics.tsx';
 import { IndustryTestSuite } from './components/IndustryTestSuite.tsx';
 import { McpToolkitConsole } from './components/McpToolkitConsole.tsx';
 import { PubChemInspectorModal } from './components/PubChemInspectorModal.tsx';
+import { SimulationPaths } from './components/SimulationPaths.tsx';
+import { MathematicalEngineVerification } from './components/MathematicalEngineVerification.tsx';
 import { InfoModal } from './components/InfoModal.tsx';
 
 export default function App() {
@@ -135,7 +137,23 @@ export default function App() {
           />
         )}
 
-        {/* Tab 3: 70-Point Industry Safety & Certification Suite */}
+        {/* Tab 3: Realistic Simulation Paths */}
+        {activeTab === 'paths' && (
+          <SimulationPaths
+            config={config}
+            metrics={metrics}
+          />
+        )}
+
+        {/* Tab 4: 100% Mathematically Verified Engine */}
+        {activeTab === 'verify' && (
+          <MathematicalEngineVerification
+            config={config}
+            metrics={metrics}
+          />
+        )}
+
+        {/* Tab 5: 70-Point Industry Safety & Certification Suite */}
         {activeTab === 'industry' && (
           <IndustryTestSuite
             config={config}

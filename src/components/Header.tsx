@@ -17,11 +17,13 @@ import {
   Award,
   ChevronDown,
   Sparkles,
+  Activity,
+  CheckCircle2,
 } from 'lucide-react';
 import type { CellConfiguration, CellPerformanceMetrics } from '../battery/types.ts';
 import { BATTERY_PRESETS } from '../battery/materials.ts';
 
-export type AppTabType = 'builder' | 'analytics' | 'industry' | 'mcp' | 'pubchem';
+export type AppTabType = 'builder' | 'analytics' | 'paths' | 'verify' | 'industry' | 'mcp' | 'pubchem';
 
 interface HeaderProps {
   currentConfig: CellConfiguration;
@@ -249,6 +251,35 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
+              onClick={() => onSelectTab('paths')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                activeTab === 'paths'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-indigo-700 hover:bg-indigo-50'
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              Simulation Paths
+            </button>
+
+            <button
+              onClick={() => onSelectTab('verify')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                activeTab === 'verify'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-700 hover:text-emerald-700 hover:bg-emerald-50'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              100% Math Engine
+              <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold ${
+                activeTab === 'verify' ? 'bg-emerald-700 text-white' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                100%
+              </span>
+            </button>
+
+            <button
               onClick={() => onSelectTab('industry')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                 activeTab === 'industry'
@@ -286,7 +317,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Database className="w-3.5 h-3.5" />
-              PubChem
+              Chemical API & PubChem
             </button>
           </nav>
 

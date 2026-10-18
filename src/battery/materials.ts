@@ -10,6 +10,7 @@ import type {
   FormFactorSpec,
   SeparatorMaterial,
   CellConfiguration,
+  FoilMaterialType,
 } from './types.ts';
 
 export const CATHODE_MATERIALS: Record<string, CathodeMaterial> = {
@@ -133,6 +134,36 @@ export const CATHODE_MATERIALS: Record<string, CathodeMaterial> = {
     costPerKg: 9,
     diffusionCoefficient: 4.0e-10,
   },
+  'al-air-gas-diffusion': {
+    id: 'al-air-gas-diffusion',
+    name: 'Atmospheric O2 Gas-Diffusion Cathode (Al-Air)',
+    formula: 'O2 (Air Open System)',
+    category: 'aluminum-air',
+    theoreticalCapacity: 2980, // High equivalent matching 4Al + 3O2
+    nominalPotentialVsLi: 2.71, // O2 reduction potential
+    density: 1.85,
+    thermalDecompositionTemp: 450,
+    pubchemCid: 5359268,
+    pubchemName: 'Oxygen / Carbon catalyst',
+    description: 'Open-structure gas diffusion layer with carbon catalyst for atmospheric oxygen reduction. Achieves ultra-high theoretical 8,100 Wh/kg system energy.',
+    costPerKg: 12,
+    diffusionCoefficient: 1.2e-8,
+  },
+  'al-ion-graphite': {
+    id: 'al-ion-graphite',
+    name: 'Expanded Pyrolytic Graphite (Al-Ion Cathode)',
+    formula: 'Cn[AlCl4]',
+    category: 'aluminum-ion',
+    theoreticalCapacity: 150, // Reversible AlCl4- intercalation
+    nominalPotentialVsLi: 2.05,
+    density: 2.20,
+    thermalDecompositionTemp: 350,
+    pubchemCid: 5462310,
+    pubchemName: 'Pyrolytic Graphite',
+    description: 'Defect-engineered natural graphite allowing fast chloroaluminate (AlCl4-) anion intercalation with ultra-fast recharge in <60 seconds.',
+    costPerKg: 14,
+    diffusionCoefficient: 8.5e-9,
+  },
 };
 
 export const ANODE_MATERIALS: Record<string, AnodeMaterial> = {
@@ -226,6 +257,21 @@ export const ANODE_MATERIALS: Record<string, AnodeMaterial> = {
     description: 'Expanded interlayer spacing ideal for large sodium-ion intercalation and fast low-temperature diffusion.',
     costPerKg: 8,
   },
+  'aluminum-metal': {
+    id: 'aluminum-metal',
+    name: 'Pure Aluminum Metal Foil Anode (Al)',
+    formula: 'Al',
+    category: 'aluminum-ion',
+    theoreticalCapacity: 2980, // 3 e- transfer per Al atom (26.982 g/mol)
+    nominalPotentialVsLi: 0.38, // 0.0V vs Al/Al3+
+    density: 2.70,
+    initialCoulombicEfficiency: 99.4,
+    volumeExpansion: 85,
+    pubchemCid: 5359268,
+    pubchemName: 'Aluminum',
+    description: 'Trivalent metal anode delivering 2,980 mAh/g via 3-electron redox transfer. High safety, abundant earth reserves, and low cost ($3.50/kg).',
+    costPerKg: 3.5,
+  },
 };
 
 export const ELECTROLYTE_MATERIALS: Record<string, ElectrolyteMaterial> = {
@@ -317,6 +363,31 @@ export const ELECTROLYTE_MATERIALS: Record<string, ElectrolyteMaterial> = {
     pubchemSaltCid: 23673456, // Sodium hexafluorophosphate
     pubchemSolventCid: 7924, // Propylene carbonate
     description: 'Standard sodium-ion electrolyte supporting wide thermal operational range without phase crystallization.',
+  },
+  'al-ion-ionic-liquid': {
+    id: 'al-ion-ionic-liquid',
+    name: 'Al-Ion Chloroaluminate Room-Temp Ionic Liquid ([EMIm]Cl:AlCl3)',
+    type: 'ionic-liquid',
+    saltFormula: 'AlCl3 in [EMIm]Cl (1.3:1 molar ratio)',
+    solventFormula: '1-Ethyl-3-methylimidazolium chloride',
+    conductivityAt25C: 15.0,
+    electrochemicalWindow: [0.0, 2.5],
+    flashPointC: 999, // Non-flammable ionic liquid
+    pubchemSaltCid: 24012, // AlCl3
+    pubchemSolventCid: 2734162, // [EMIm]Cl
+    description: 'Room-temperature molten salt electrolyte enabling reversible 3-electron aluminum metal stripping/plating without dendrite short circuits.',
+  },
+  'al-air-alkaline': {
+    id: 'al-air-alkaline',
+    name: 'Aqueous Alkaline Electrolyte (4.0M KOH + SnO Additive)',
+    type: 'aqueous',
+    saltFormula: 'KOH (Potassium Hydroxide)',
+    solventFormula: 'H2O with corrosion inhibitor',
+    conductivityAt25C: 540.0, // High aqueous ionic conductivity
+    electrochemicalWindow: [0.0, 1.8],
+    flashPointC: 999, // Non-flammable water-based
+    pubchemSaltCid: 4873,
+    description: 'High-conductivity aqueous alkaline electrolyte for aluminum-air primary batteries with stannate corrosion inhibitor suppressing self-discharge hydrogen evolution.',
   },
 };
 
@@ -571,4 +642,115 @@ export const BATTERY_PRESETS: BatteryPreset[] = [
       ambientTempC: 25,
     },
   },
+  {
+    id: 'aluminum-ion-fast-charge',
+    name: 'Rechargeable Aluminum-Ion Fast-Charge Cell',
+    category: 'Aluminum-Ion',
+    tagline: 'Pyrolytic graphite cathode with pure Aluminum metal anode and ionic liquid for <60s charge and zero fire risk',
+    config: {
+      cathodeId: 'al-ion-graphite',
+      anodeId: 'aluminum-metal',
+      electrolyteId: 'al-ion-ionic-liquid',
+      separatorId: 'celgard-2325',
+      formFactorId: 'pouch',
+      cathodeThicknessUm: 70,
+      cathodePorosity: 0.30,
+      cathodeActiveFraction: 0.92,
+      anodeThicknessUm: 40, // Pure aluminum foil anode
+      anodePorosity: 0.05,
+      anodeActiveFraction: 0.99,
+      separatorThicknessUm: 20,
+      aluminumFoilThicknessUm: 14,
+      copperFoilThicknessUm: 14, // Uses Aluminum for both positive and negative
+      cathodeFoilMaterial: 'aluminum',
+      anodeFoilMaterial: 'aluminum',
+      electrodeAreaCm2: 3800,
+      ambientTempC: 25,
+    },
+  },
+  {
+    id: 'aluminum-air-high-energy',
+    name: 'Aluminum-Air Ultra-High Energy System',
+    category: 'Aluminum-Air',
+    tagline: '3-electron aluminum anode with atmospheric oxygen cathode delivering up to 8,100 Wh/kg theoretical density',
+    config: {
+      cathodeId: 'al-air-gas-diffusion',
+      anodeId: 'aluminum-metal',
+      electrolyteId: 'al-air-alkaline',
+      separatorId: 'celgard-2325',
+      formFactorId: 'prismatic',
+      cathodeThicknessUm: 100,
+      cathodePorosity: 0.45,
+      cathodeActiveFraction: 0.85,
+      anodeThicknessUm: 80,
+      anodePorosity: 0.05,
+      anodeActiveFraction: 0.99,
+      separatorThicknessUm: 25,
+      aluminumFoilThicknessUm: 16,
+      copperFoilThicknessUm: 16,
+      cathodeFoilMaterial: 'aluminum',
+      anodeFoilMaterial: 'aluminum',
+      electrodeAreaCm2: 14500,
+      ambientTempC: 25,
+    },
+  },
 ];
+
+export interface FoilMaterialSpec {
+  id: FoilMaterialType;
+  name: string;
+  metal: string;
+  density: number; // g/cm³
+  conductivity: number; // S/m
+  typicalThicknessUm: number;
+  costPerKg: number; // USD
+  corrosionBreakdownPotentialV: number; // V vs Li/Li+ (under standard PF6)
+  description: string;
+}
+
+export const FOIL_MATERIALS: Record<FoilMaterialType, FoilMaterialSpec> = {
+  'aluminum': {
+    id: 'aluminum',
+    name: 'Battery-Grade Annealed Aluminum Foil (Al 99.5%)',
+    metal: 'Al',
+    density: 2.70,
+    conductivity: 3.77e7,
+    typicalThicknessUm: 14,
+    costPerKg: 3.5,
+    corrosionBreakdownPotentialV: 4.5,
+    description: 'Ultra-lightweight current collector for cathode (and anode in Na-ion / Al-ion). Forms protective AlF3 passivation film with PF6 salt.',
+  },
+  'copper': {
+    id: 'copper',
+    name: 'Electrodeposited High-Purity Copper Foil (Cu)',
+    metal: 'Cu',
+    density: 8.96,
+    conductivity: 5.96e7,
+    typicalThicknessUm: 9,
+    costPerKg: 9.8,
+    corrosionBreakdownPotentialV: 3.5,
+    description: 'Standard negative electrode current collector for lithium-ion graphite/silicon anodes. High electrical conductivity with low IR drop.',
+  },
+  'nickel': {
+    id: 'nickel',
+    name: 'Rolled Pure Nickel Foil (Ni 200/201)',
+    metal: 'Ni',
+    density: 8.90,
+    conductivity: 1.43e7,
+    typicalThicknessUm: 10,
+    costPerKg: 18.0,
+    corrosionBreakdownPotentialV: 4.8,
+    description: 'Extreme chemical resistance foil used in solid-state and high-temperature electrochemical cells.',
+  },
+  'carbon-coated-aluminum': {
+    id: 'carbon-coated-aluminum',
+    name: 'Carbon-Coated Aluminum Foil (1µm conductive C-layer)',
+    metal: 'Al + C',
+    density: 2.65,
+    conductivity: 3.65e7,
+    typicalThicknessUm: 15,
+    costPerKg: 5.2,
+    corrosionBreakdownPotentialV: 4.8,
+    description: 'Ultra-thin conductive carbon interlayer suppressing interface contact resistance, boosting high C-rate capability, and resisting HF acid attack.',
+  },
+};

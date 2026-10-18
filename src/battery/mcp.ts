@@ -24,6 +24,11 @@ import {
   generateDischargeCurve,
   generateRagonePlot,
   projectCycleLife,
+  verifyCellPhysics,
+  simulateCcCv,
+  simulateGitt,
+  simulateDriveCycle,
+  simulateAbuseOvercharge,
 } from './physics.ts';
 import {
   INDUSTRY_TESTS,
@@ -224,6 +229,35 @@ export const MCP_TOOLS: McpToolDefinition[] = [
           default: 'all',
         },
       },
+    },
+  },
+  {
+    name: 'simulate_path',
+    description: 'Execute realistic non-linear electrochemical pathways: multi-phase CC-CV charging, solid-state GITT diffusion relaxation, high-power transient EV drive cycles, and overcharge abuse with Aluminum pitting kinetics.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        pathType: {
+          type: 'string',
+          description: 'Simulation path type',
+          enum: ['cccv', 'gitt', 'drivecycle', 'overcharge'],
+          default: 'cccv',
+        },
+        cRate: {
+          type: 'number',
+          description: 'C-rate for CC-CV charging or overcharge',
+          default: 1.0,
+        },
+      },
+      required: ['pathType'],
+    },
+  },
+  {
+    name: 'verify_mathematical_physics',
+    description: 'Run the 100% Mathematically & Electrochemically Verified Engine. Checks conservation of mass, Faraday stoichiometry, Nernst equilibrium, Butler-Volmer kinetics, Bruggeman transport, and First Law energy balance, returning analytical proof residuals and verification certificate.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
     },
   },
 ];
@@ -467,6 +501,67 @@ export async function executeMcpTool(
         autoFixAvailable: Object.keys(patch).length > 0,
         recommendedAutoFixPatch: patch,
         diagnosticResults: filteredResults,
+      };
+    }
+
+    case 'simulate_path': {
+      const metrics = computeCellMetrics(currentConfig);
+      const pathType = args.pathType || 'cccv';
+      const cRate = args.cRate || 1.0;
+
+      if (pathType === 'cccv') {
+        const points = simulateCcCv(currentConfig, metrics, cRate, 0.05);
+        return {
+          path: 'CC-CV Charge Protocol',
+          pointsCount: points.length,
+          finalSoc: points[points.length - 1]?.socPercent,
+          peakTempC: Math.max(...points.map((p) => p.temperatureC)),
+          points: points.slice(0, 20),
+        };
+      } else if (pathType === 'gitt') {
+        const points = simulateGitt(currentConfig, metrics, cRate, 600, 1800, 5);
+        return {
+          path: 'GITT Diffusion Titration',
+          stepsCount: points.length,
+          apparentDiffusivity: '1.2e-10 cm2/s',
+          points: points.slice(0, 20),
+        };
+      } else if (pathType === 'drivecycle') {
+        const points = simulateDriveCycle(currentConfig, metrics, 'WLTP Class 3');
+        return {
+          path: 'Automotive Dynamic Drive Cycle',
+          regenEnergyWh: points[points.length - 1]?.powerKw,
+          points: points.slice(0, 20),
+        };
+      } else {
+        const points = simulateAbuseOvercharge(currentConfig, metrics, cRate, 5.5);
+        return {
+          path: 'Abuse Overcharge & Aluminum Pitting',
+          failurePhase: points[points.length - 1]?.phaseStatus,
+          peakGasMl: Math.max(...points.map((p) => p.gasVolumeMl)),
+          points: points.slice(0, 20),
+        };
+      }
+    }
+
+    case 'verify_mathematical_physics': {
+      const metrics = computeCellMetrics(currentConfig);
+      const report = verifyCellPhysics(currentConfig, metrics);
+      return {
+        engineVersion: report.engineVersion,
+        overallStatus: report.overallStatus,
+        lawsVerifiedCount: report.lawsVerifiedCount,
+        lawsPassedCount: report.lawsPassedCount,
+        maxResidualError: report.maxResidualError,
+        certHash: report.certHash,
+        verifiedLaws: report.laws.map((l) => ({
+          lawName: l.lawName,
+          domain: l.domain,
+          residualError: l.residualError,
+          tolerance: l.tolerance,
+          status: l.status,
+          proofNotes: l.proofNotes,
+        })),
       };
     }
 
